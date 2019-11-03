@@ -36,16 +36,16 @@ public class AuthenticationController {
 
 	@PostMapping(path = { "/authenticate" }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequestDto authenticationRequestDto) {
+		
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+				authenticationRequestDto.getUsername(), authenticationRequestDto.getPassword());
+
 		try {
-			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-					authenticationRequestDto.getUsername(), authenticationRequestDto.getPassword()));
+			authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 
 		} catch (BadCredentialsException e) {
 			throw new BadCredentialsException("Incorrect username and password", e);
 		}
-
-		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-				"", "");
 		UserDetails user = this.userService.loadUserByUsername(authenticationRequestDto.getUsername());
 
 		SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
@@ -64,7 +64,7 @@ public class AuthenticationController {
 	@ExceptionHandler(value = { BadCredentialsException.class })
 	public ResponseEntity<ResponseErrorMessageDto> badCredentialsException(BadCredentialsException ex) {
 		ResponseErrorMessageDto error = new ResponseErrorMessageDto();
-		error.setCode(HttpStatus.UNAUTHORIZED.value()+"");
+		error.setCode(HttpStatus.UNAUTHORIZED.value() + "");
 		error.setStatus("Error");
 		error.setMessage(ex.getLocalizedMessage());
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
